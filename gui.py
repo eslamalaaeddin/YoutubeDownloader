@@ -21,5 +21,10 @@ url_entry.grid(row=0, column=1, padx=8, pady=8)
 search_button = Button(frame, text="Search", command=None)
 search_button.grid(row=0, column=3, padx=8, pady=8)
 
+## thumbnail
+img = ImageTk.PhotoImage(Image.open("jerry.jpg").resize((196, 196)))
+panel = Label(frame, image=img, anchor="w")
+panel.grid(row=2, column=0, padx=8, pady=8)
+
 root.title("Youtube Downloader")
 root.mainloop()
