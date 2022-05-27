@@ -12,5 +12,10 @@ frame.pack()
 url_label = Label(frame, text="Video URL")
 url_label.grid(row=0, column=0, padx=8, pady=8)
 
+## URL entry
+url_entry = Entry(frame, width=64)
+url_entry.insert(0, '')
+url_entry.grid(row=0, column=1, padx=8, pady=8)
+
 root.title("Youtube Downloader")
 root.mainloop()
