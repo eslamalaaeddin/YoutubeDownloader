@@ -17,5 +17,9 @@ url_entry = Entry(frame, width=64)
 url_entry.insert(0, '')
 url_entry.grid(row=0, column=1, padx=8, pady=8)
 
+## search button
+search_button = Button(frame, text="Search", command=None)
+search_button.grid(row=0, column=3, padx=8, pady=8)
+
 root.title("Youtube Downloader")
 root.mainloop()
