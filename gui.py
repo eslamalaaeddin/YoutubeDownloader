@@ -38,5 +38,17 @@ streams_listbox.grid(row=2, column=1, padx=8, pady=8, sticky='EW')
 # myscroll.grid(row=2, column=1, sticky='ns')
 # myscroll.config(command = streams_listbox.yview)
 
+
+## download button
+download_button = Button(frame, text="Download", command=None)
+download_button.grid(row=3, column=1, padx=8, pady=8)
+
+## cancel downloading button
+cancel_downloading_button = Button(frame, text="Cancel", command=None)
+cancel_downloading_button.grid(row=3, column=2, padx=8, pady=8)
+
+
+
+
 root.title("Youtube Downloader")
 root.mainloop()
