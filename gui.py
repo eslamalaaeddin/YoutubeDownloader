@@ -1,5 +1,5 @@
 import tkinter
-from tkinter import CENTER, HORIZONTAL
+from tkinter import CENTER, HORIZONTAL, END, DISABLED, NORMAL
 from tkinter.ttk import Label, Entry, Button, Progressbar
 import requests
 from io import BytesIO
@@ -7,8 +7,6 @@ import pytube
 from PIL import ImageTk, Image
 
 import threading
-
-file_size = 0
 
 # import commands
 from pytube import YouTube
@@ -33,31 +31,72 @@ def progress_Check(stream=None, chunk=None, remaining=0):
     # except:
     #     # progress bar dont reach 100% so a little trick to make it 100
     #     download_progress_bar.update()
-    print('something')
+    # print('something')
+    pass
+
+
+def on_search_complete():
+    # print('Searching completed')
+    # response = requests.get(yt.thumbnail_url)
+    # img = Image.open(BytesIO(response.content))
+    # # img.show()
+    # img = ImageTk.PhotoImage(Image.open(BytesIO(response.content)).resize((196, 196)))
+    # panel = Label(frame, image=img, anchor="w")
+    # panel.grid(row=2, column=0, padx=8, pady=8)
+    # switch()
+    pass
+
+
+def switch_search_button_state():
+    print(search_button['state'])
+    if search_button['state'] == 'normal':
+        search_button['state'] = 'disabled'
+        # print('a')
+    else:
+        search_button['state'] = 'normal'
+        # print('b')
 
 
 def show_all_streams(url):
     yt = None
     try:
-        yt = YouTube(url=url, on_progress_callback=progress_Check(), on_complete_callback=None)
+        yt = YouTube(url=url, on_progress_callback=progress_Check(), on_complete_callback=on_search_complete())
+        response = requests.get(yt.thumbnail_url)
+        img = Image.open(BytesIO(response.content))
+        # img.show()
+        img = ImageTk.PhotoImage(Image.open(BytesIO(response.content)).resize((196, 196)))
+
+        panel.configure(image=img)
+        panel.image = img
+
 
     except Exception as e:
         print(e)
 
-    return yt, yt.streams.filter(progressive=True).otf(False), yt.streams.filter(type='audio') if yt is not None else None
+    return yt, yt.streams.filter(progressive=True).otf(False), yt.streams.filter(
+        type='audio') if yt is not None else None
 
 
 def on_search_button_clicked():
     url = url_entry.get()
+
+    streams_listbox.delete(0, END)
     global video_streams
     global audio_streams
+    global yt
     # yt, streams = commands.search_with_url(url)
     yt, video_streams, audio_streams = show_all_streams(url)
 
+    if audio_streams is not None:
+        for i, s in enumerate(audio_streams):
+            # print(s)
+            media_label = s.title + ' - ' + str(s.abr) + ' - ' + str(round(s.filesize / 1000000, 2)) + 'MB'
+            # print(s)
+            streams_listbox.insert(i, media_label + '|' + str(s.itag))
 
     if video_streams is not None:
         for i, s in enumerate(video_streams):
-            print(s)
+            # print(s)
             if s.type == 'video':
                 media_label = s.title + ' - ' + str(s.resolution) + ' - ' + str(s.fps) + 'fps' + ' - ' + str(
                     round(s.filesize / 1000000, 2)) + 'MB'
@@ -66,42 +105,32 @@ def on_search_button_clicked():
             # print(s)
             streams_listbox.insert(i, media_label + '|' + str(s.itag))
 
-    if audio_streams is not None:
-        for i, s in enumerate(audio_streams):
-            print(s)
-            media_label = s.title + ' - ' + str(s.abr) + ' - ' + str(round(s.filesize / 1000000, 2)) + 'MB'
-            # print(s)
-            streams_listbox.insert(i, media_label + '|' + str(s.itag))
-        # response = requests.get(yt.thumbnail_url)
-        # img = Image.open(BytesIO(response.content))
-        # img = ImageTk.PhotoImage(Image.open(BytesIO(response.content)).resize((196, 196)))
-
-        # img.show()
-
-        # panel = Label(frame, image=img, anchor="w")
-        # panel.grid(row=2, column=0, padx=8, pady=8)
     else:
         print('Error')
+
+    switch_search_button_state()
 
 
 def search_threaded():
     global search_thread
+    switch_search_button_state()
     search_thread = threading.Thread(target=on_search_button_clicked, daemon=True)
     search_thread.start()
 
 
 def download_threaded():
-    threading.Thread(target=download_selected, daemon=True).start()
+    global download_thread
+    download_thread = threading.Thread(target=download_selected, daemon=True).start()
 
 
 def cancel_download():
-    print('Cancelling')
+    download_thread = None
 
 
 def download_selected():
     selected = streams_listbox.curselection()  # returns a tuple
     if not selected:
-        info = "اختار حاجة أحملها لك الأول يا بغل".split(' ')
+        info = "اختار حاجة أحملها لك الأول يا حلوف".split(' ')
         info.reverse()
         info = ' '.join(info)
         open_popup(info)
@@ -119,6 +148,8 @@ def download_selected():
                 filename_prefix=itag)
             print('Download Completed')
 
+            # TODO PROGRESSING STUFF
+
         if aud_streams is not None:
             print(aud_streams.filesize)
             aud_streams.download(
@@ -133,6 +164,10 @@ root = tkinter.Tk()
 root.geometry("800x400")
 frame = tkinter.Frame(root)
 frame.pack()
+
+
+
+# img = ImageTk.PhotoImage(Image.open("jerry.jpg").resize((196, 196)))
 
 ## url label
 url_label = Label(frame, text="Video URL")
@@ -162,9 +197,12 @@ download_button = Button(frame, text="Download", command=download_threaded)  # T
 download_button.grid(row=1, column=2, padx=8, pady=8)
 
 ## thumbnail
-img = ImageTk.PhotoImage(Image.open("jerry.jpg").resize((196, 196)))
+img = ImageTk.PhotoImage(Image.open("logo.png").resize((196, 196)))
 panel = Label(frame, image=img, anchor="w")
 panel.grid(row=2, column=0, padx=8, pady=8)
+
+# img.show()
+
 
 ## streams list box
 streams_listbox = tkinter.Listbox(frame, selectmode="multiple", width=10, height=12)
@@ -177,7 +215,7 @@ download_progress_bar.grid(row=3, column=1, padx=8, pady=8)
 download_progress_bar['value'] = 90  # percentage
 
 ## cancel downloading button
-cancel_downloading_button = Button(frame, text="Cancel", command=None)
+cancel_downloading_button = Button(frame, text="Abort", command=cancel_download)
 cancel_downloading_button.grid(row=3, column=2, padx=8, pady=8)
 
 root.title("Youtube Downloader")
